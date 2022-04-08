@@ -59,5 +59,5 @@ if __name__ == '__main__':
       ebm_global = lr.explain_global()
       show(ebm_global)
 
-      ebm_local = lr.explain_local(X_test[:5], y_test[:5])
-      show(ebm_local)
+      #ebm_local = lr.explain_local(X_test[:5], y_test[:5])
+      #show(ebm_local)
