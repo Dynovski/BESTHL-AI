@@ -18,16 +18,28 @@ from interpret import show
 
 if __name__ == '__main__':
     data = pd.read_csv("train_data.csv", on_bad_lines="skip")
-    data = data.fillna(0)
+    data=data[['BORO', 'BLOCK', 'LOT',
+       'TAXCLASS', 'LTFRONT', 'LTDEPTH', 'STORIES', 'FULLVAL', 'AVLAND',
+       'AVTOT', 'EXLAND', 'EXTOT', 'EXCD1', 'POSTCODE',
+       'BLDFRONT', 'BLDDEPTH', 'AVLAND2', 'AVTOT2',
+         'YEAR', 'Latitude',
+       'Longitude', 'Community Board', 'Census Tract'
+       ]].fillna(0)
     feature_columns = data.columns.copy()
-    X = data[feature_columns]
+    X = data[['BORO', 'BLOCK', 'LOT',
+        'LTFRONT', 'LTDEPTH', 'STORIES', 'AVLAND',
+       'AVTOT', 'EXLAND', 'EXTOT', 'EXCD1', 'POSTCODE',
+       'BLDFRONT', 'BLDDEPTH', 'AVLAND2', 'AVTOT2',
+          'Latitude',
+       'Longitude', 'Community Board', 'Census Tract'
+       ]].fillna(0)
     y = data['FULLVAL']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
 
-    label_encoders = []
-    for c in train_df.columns:
-        pass
+    #label_encoders = []
+    #for c in train_df.columns:
+    #    pass
         # Label encoding here
 
     # EBM logistic regression
