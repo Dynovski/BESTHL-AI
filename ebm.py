@@ -14,6 +14,8 @@ import pycountry
 from sklearn import preprocessing
 from interpret.glassbox import LogisticRegression
 from interpret import show
+from interpret import set_visualize_provider
+from interpret.provider import InlineProvider
 
 
 if __name__ == '__main__':
@@ -48,3 +50,14 @@ if __name__ == '__main__':
 
     y_pred = lr.predict(X_test)
     print(accuracy_score(y_pred=y_pred, y_true=y_test))
+
+
+
+      # This part better run in jupyter notebook
+      set_visualize_provider(InlineProvider())
+
+      ebm_global = lr.explain_global()
+      show(ebm_global)
+
+      ebm_local = lr.explain_local(X_test[:5], y_test[:5])
+      show(ebm_local)
