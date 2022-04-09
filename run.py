@@ -132,13 +132,13 @@ def run_models(path_to_data: str):
 
 if __name__ == '__main__':
     #run_models('./train_data.csv')
-    preds_train, preds_test, res_train, res_test, manager = run_models('./filtered.csv')
+    preds_train, preds_test, res_train, res_test, manager = run_models('./processed.csv')
     res_train = pd.DataFrame(res_train, index=range(len(res_train)))
     res_test = pd.DataFrame(res_test, index=range(len(res_test)))
     
     importances = manager.forest.feature_importances_
     imp_sorted = list(reversed(sorted(importances)))
-    dl = DataLoader('./filtered.csv', [], 'FULLVAL')
+    dl = DataLoader('./processed.csv', [], 'FULLVAL')
     df_imp_sorted = dl.get_data().loc[:, reversed([dl.get_data().columns[idx] for idx in importances.argsort()])]
     
     errors = np.abs(preds_test['RF'] - manager.y_test)
