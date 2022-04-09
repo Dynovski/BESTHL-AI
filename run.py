@@ -3,19 +3,27 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression, Lasso, Ridge, SGDRegressor
 from sklearn.svm import SVR, LinearSVR
-from sklearn.metrics import mean_absolute_error
+#from sklearn.metrics import mean_absolute_error
 from typing import List
+import matplotlib.pyplot as plt
+import numpy as np
+import joblib
+from sklearn.decomposition import PCA
+import standarizing
 
+def mean_absolute_error(x, y):
+    return np.mean(np.abs(x - y))
 
 class DataLoader:
     def __init__(self, data_path: str, attributes: List[str], class_column_name: str):
         self.class_column_name: str = class_column_name
         self.attributes: List[str] = attributes
-        self.data: pd.DataFrame = pd.read_csv(data_path, on_bad_lines='skip')
+        self.data: pd.DataFrame = pd.read_csv(data_path, error_bad_lines=False)
         self.data.fillna(0, inplace=True)
 
     def get_data(self) -> pd.DataFrame:
-        return self.data[self.attributes]
+        #return self.data[self.attributes]
+        return self.data.drop(columns=self.class_column_name)
 
     def get_targets(self) -> pd.Series:
         return self.data[self.class_column_name]
@@ -29,59 +37,65 @@ class ModelsEvaluator:
         self.y_test = y_test
 
         self.linear = LinearRegression()
-        self.forest = RandomForestRegressor()
+        self.forest = RandomForestRegressor(min_samples_split=4, min_samples_leaf=2, n_estimators=1000)
+
         self.lasso = Lasso()
         self.ridge = Ridge()
         self.regressor = SGDRegressor()
         self.svr = SVR()
         self.linear_svr = LinearSVR()
+        
+    def reverse_transform_y(self, y):
+        y = standarizing.reverse_transform(y, 'standard_scaler_y.joblib')
+        y = standarizing.reverse_log(y)
+        return y
 
     def evaluate(self):
         self.linear.fit(self.x_train, self.y_train)
-        linear_y_pred_train = self.linear.predict(self.x_train)
-        linear_y_pred_test = self.linear.predict(self.x_test)
-        print('Linear mean squared error on training data:', mean_absolute_error(self.y_train, linear_y_pred_train))
-        print('Linear mean squared error on test data:', mean_absolute_error(self.y_test, linear_y_pred_test))
-
-        self.lasso.fit(self.x_train, self.y_train)
-        lasso_y_pred_train = self.lasso.predict(self.x_train)
-        lasso_y_pred_test = self.lasso.predict(self.x_test)
-        print('Lasso mean squared error on training data:', mean_absolute_error(self.y_train, lasso_y_pred_train))
-        print('Lasso mean squared error on test data:', mean_absolute_error(self.y_test, lasso_y_pred_test))
-
-        self.ridge.fit(self.x_train, self.y_train)
-        ridge_y_pred_train = self.ridge.predict(self.x_train)
-        ridge_y_pred_test = self.ridge.predict(self.x_test)
-        print('Ridge mean squared error on training data:', mean_absolute_error(self.y_train, ridge_y_pred_train))
-        print('Ridge mean squared error on test data:', mean_absolute_error(self.y_test, ridge_y_pred_test))
-
-        self.forest.fit(self.x_train, self.y_train)
-        forest_y_pred_train = self.forest.predict(self.x_train)
-        forest_y_pred_test = self.forest.predict(self.x_test)
-        print('Forest mean squared error on training data:', mean_absolute_error(self.y_train, forest_y_pred_train))
-        print('Forest mean squared error on test data:', mean_absolute_error(self.y_test, forest_y_pred_test))
-
-        self.linear_svr.fit(self.x_train, self.y_train)
-        linear_svr_y_pred_train = self.linear_svr.predict(self.x_train)
-        linear_svr_y_pred_test = self.linear_svr.predict(self.x_test)
-        print('Linear SVR mean squared error on training data:', mean_absolute_error(self.y_train, linear_svr_y_pred_train))
-        print('Linear SVR mean squared error on test data:', mean_absolute_error(self.y_test, linear_svr_y_pred_test))
-
-        self.svr.fit(self.x_train, self.y_train)
-        svr_y_pred_train = self.svr.predict(self.x_train)
-        svr_y_pred_test = self.svr.predict(self.x_test)
-        print('SVR mean squared error on training data:', mean_absolute_error(self.y_train, svr_y_pred_train))
-        print('SVR mean squared error on test data:', mean_absolute_error(self.y_test, svr_y_pred_test))
-
-        self.regressor.fit(self.x_train, self.y_train)
-        regressor_y_pred_train = self.regressor.predict(self.x_train)
-        regressor_y_pred_test = self.regressor.predict(self.x_test)
-        print('Regressor mean squared error on training data:', mean_absolute_error(self.y_train, regressor_y_pred_train))
-        print('Regressor mean squared error on test data:', mean_absolute_error(self.y_test, regressor_y_pred_test))
+        models = {
+            'Linear': self.linear,
+            'Lasso': self.lasso,
+            'Ridge': self.ridge,
+            'RF': self.forest,
+            'Linear SVR': self.linear_svr,
+            'SVR': self.svr,
+            'SGDRegressor': self.regressor
+            }
+        
+        preds_train = {}
+        preds_test = {}
+        results_train = {}
+        results_test = {}
+        
+        y_train = self.reverse_transform_y(self.y_train)
+        y_test = self.reverse_transform_y(self.y_test)
+        
+        for key in models:
+            model = models[key]
+            model.fit(self.x_train, self.y_train)
+            y_pred_train = model.predict(self.x_train)
+            y_pred_test = model.predict(self.x_test)
+            
+            y_pred_train = standarizing.reverse_transform(y_pred_train, 'standard_scaler_y.joblib')
+            y_pred_test = standarizing.reverse_transform(y_pred_test, 'standard_scaler_y.joblib')
+            y_pred_train = standarizing.reverse_log(y_pred_train)
+            y_pred_test = standarizing.reverse_log(y_pred_test)
+            
+            preds_train[key] = y_pred_train
+            preds_test[key] = y_pred_test
+            
+            error_train = mean_absolute_error(y_train, y_pred_train)
+            results_train[key] = error_train
+            error_test = mean_absolute_error(y_test, y_pred_test)
+            results_test[key] = error_test
+            print(key, 'mean absolute error on traininig data:', error_train)
+            print(key, 'mean absolute error on test data:', error_test)
+        
+        return preds_train, preds_test, results_train, results_test
 
 
 def run_models(path_to_data: str):
-    loader = dataloader = DataLoader(
+    dataloader = DataLoader(
         path_to_data,
         ['BORO', 'BLOCK', 'LOT', 'LTFRONT', 'LTDEPTH', 'STORIES', 'AVLAND',
          'AVTOT', 'EXLAND', 'EXTOT',
@@ -98,8 +112,27 @@ def run_models(path_to_data: str):
     )
 
     manager = ModelsEvaluator(x_train, y_train, x_test, y_test)
-    manager.evaluate()
+    preds_train, preds_test, res_train, res_test = manager.evaluate()
+    return preds_train, preds_test, res_train, res_test, manager
 
 
 if __name__ == '__main__':
-    run_models('./train_data.csv')
+    #run_models('./train_data.csv')
+    preds_train, preds_test, res_train, res_test, manager = run_models('./processed.csv')
+    res_train = pd.DataFrame(res_train, index=range(len(res_train)))
+    res_test = pd.DataFrame(res_test, index=range(len(res_test)))
+    
+    importances = manager.forest.feature_importances_
+    imp_sorted = list(reversed(sorted(importances)))
+    dl = DataLoader('./processed.csv', [], 'FULLVAL')
+    df_imp_sorted = dl.get_data().loc[:, reversed([dl.get_data().columns[idx] for idx in importances.argsort()])]
+    
+    errors = np.abs(preds_test['RF'] - manager.y_test)
+    plt.scatter(manager.y_test, errors)
+    
+    y_test = manager.y_test
+
+    #pca = PCA(n_components=100)
+    #df_filtered = pd.DataFrame(pca.fit_transform(dl.get_data()))
+    #df_filtered['FULLVAL'] = dl.get_targets()
+    #df_filtered.to_csv('./filtered.csv', index=0)
