@@ -57,7 +57,7 @@ class ModelsEvaluator:
         self.RANSAC = RANSACRegressor()
         
     def reverse_transform_y(self, y):
-        y = standarizing.reverse_transform(y, 'standard_scaler_y.joblib')
+        y = standarizing.reverse_transform(y, 'scalers/standard_scaler_y.joblib')
         y = standarizing.reverse_log(y)
         return y
 
@@ -90,8 +90,8 @@ class ModelsEvaluator:
             y_pred_train = model.predict(self.x_train)
             y_pred_test = model.predict(self.x_test)
             
-            y_pred_train = standarizing.reverse_transform(y_pred_train, 'standard_scaler_y.joblib')
-            y_pred_test = standarizing.reverse_transform(y_pred_test, 'standard_scaler_y.joblib')
+            y_pred_train = standarizing.reverse_transform(y_pred_train, 'scalers/standard_scaler_y.joblib')
+            y_pred_test = standarizing.reverse_transform(y_pred_test, 'scalers/standard_scaler_y.joblib')
             y_pred_train = standarizing.reverse_log(y_pred_train)
             y_pred_test = standarizing.reverse_log(y_pred_test)
             
