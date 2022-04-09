@@ -1,16 +1,15 @@
-<h1>Readme</h1>
+<h1>BestHL Team Bagietka</h1>
 
-File structure:
+Project structure:
 
-- Cleaning.ipynb - file for data preprocessing.
-- run.py - file for training and evaluating models.
-- EDA.ipynb - exploratory data analysis.
+- data - directory containing data files and description of columns
+- exploration - folder containing scripts used during data exploration
+- scalers - folder containing saved scaler models
+- Cleaning.ipynb - script for data preprocessing
+- run.py - script for training and evaluating models
 - hyperparameters_search.ipynb - hyperparameter optimization for Random Forest Regressor
-- standarizing - utility functions for data normalization and scaling.
-- EBM.ipynb 
-- columns_info.xlsx - description of dataset's columns.
-- train_data.csv - raw data
-- processed.csv - latest version of data processed with Cleaning.ipynb
+- standarizing - utility functions for data normalization and scaling
+- requirements.txt - project requirements
 
 
 
