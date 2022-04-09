@@ -19,7 +19,7 @@ from interpret.provider import InlineProvider
 
 
 if __name__ == '__main__':
-   data = pd.read_csv("train_data.csv", on_bad_lines="skip")
+   data = pd.read_csv("../data/train_data.csv", on_bad_lines="skip")
    data=data[['BORO', 'BLOCK', 'LOT',
       'TAXCLASS', 'LTFRONT', 'LTDEPTH', 'STORIES', 'FULLVAL', 'AVLAND',
       'AVTOT', 'EXLAND', 'EXTOT', 'EXCD1', 'POSTCODE',
